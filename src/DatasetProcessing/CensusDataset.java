@@ -16,6 +16,17 @@
  */
 package DatasetProcessing;
 
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Toolkit;
+
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.io.FileNotFoundException;
+
 import java.io.FileWriter;
 import java.io.FileReader;
 import java.io.IOException;
@@ -23,8 +34,18 @@ import java.io.PrintWriter;
 
 import openCSV.CSVReader;
 
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
+
+import javax.swing.UIManager.LookAndFeelInfo;
+
 import java.util.Arrays;
-import java.util.InputMismatchException;
 import java.util.List;
 import java.util.Scanner;
 
@@ -34,26 +55,117 @@ import java.util.Scanner;
  * @author: NTropy
  * @version: 11/17/2017
  */
-public class CensusDataset {
+public class CensusDataset extends JPanel {
+
+    private static ActionEvent sendOverride;
+
+    private static CSVReader reader;
+
+    private static FileWriter file1;
+
+    private static int option;
+
+    private static List<String[]> list;
+
+    private static JButton jbtnSend;
+
+    private static JFrame jfrm;
+
+    private static JTextArea jtaDisplay;
+
+    private static JScrollPane jscrlp;
+
+    private static JTextField jtfInput;
+
+    private static PrintWriter output;
+
+    private static String input;
+
+    private static Adult adults[];
 
     static Scanner kbReader = new Scanner(System.in);
 
-    static int userInput = 1;
-    static int countCalls = 0;
-
     /**
+     * Creates JFrame and populate array from CSV
      *
-     * @throws IOException
+     * @param args
      */
-    public static void main() throws IOException {
-        FileWriter file1 = new FileWriter("AdultsReport.txt");
-        PrintWriter output = new PrintWriter(file1);
+    public static void main(String args[]) {
+        try {
+            for (LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
+                if ("Nimbus".equals(info.getName())) {
+                    UIManager.setLookAndFeel(info.getClassName());
+                    break;
+                }
+            }
+        } catch (ClassNotFoundException | IllegalAccessException | InstantiationException | UnsupportedLookAndFeelException exe) {
+            System.err.println(exe);
+        }
+
+        option = 0;
+
+        jfrm = new JFrame("Airport Queue");
+        jfrm.setLayout(new BorderLayout()); //sets layout based on borders
+        jfrm.setSize(700, 600); //sets size
+
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize(); //gets screen dimensions
+
+        double screenWidth = screenSize.getWidth(); //width of screen
+        double screenHeight = screenSize.getHeight(); //height of screen
+
+        jfrm.setLocation((int) screenWidth / 2 - 250, (int) screenHeight / 2 - 210); //sets location of chat to center
+
+        jtaDisplay = new JTextArea(20, 40); //size of display
+        jtaDisplay.setEditable(false); //display not editable
+        jtaDisplay.setLineWrap(true); //lines wrap down
+
+        jscrlp = new JScrollPane(jtaDisplay); //makes dispaly scrollable
+
+        jtfInput = new JTextField(30); //sets character width of input field
+
+        jbtnSend = new JButton("Send"); //sets button text
+
+        jbtnSend.addActionListener(new handler()); //adds listener to button
+
+        KeyListener key = new handler(); //adds handler for 'enter' key
+
+        jtfInput.addKeyListener(key); //adds keylistener for 'enter'
+        jfrm.add(jscrlp, BorderLayout.PAGE_START); //adds scrollable display to main frame
+
+        sendOverride = new ActionEvent(jbtnSend, 1001, "Send"); //allows key to trigger same method as button
+
+        JPanel p1 = new JPanel(); //panel for input/button
+
+        p1.setLayout(new FlowLayout()); //flow layout for input/button
+        p1.add(jtfInput, BorderLayout.LINE_END); //adds input to panel
+        p1.add(jbtnSend, BorderLayout.LINE_END); //adds button to panel
+
+        jfrm.add(p1, BorderLayout.PAGE_END); //add button/input to main frame
+
+        jfrm.setVisible(true); //makes frame visible
+
+        jfrm.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); //kills application on close
+
+        try {
+            file1 = new FileWriter("AdultsReport.txt");
+        } catch (IOException e) {
+            System.err.println(e);
+        }
+        output = new PrintWriter(file1);
 
         String fileName = "adult.csv";
 
-        CSVReader reader = new CSVReader(new FileReader(fileName));
+        try {
+            reader = new CSVReader(new FileReader(fileName));
+        } catch (FileNotFoundException e) {
+            System.err.println(e);
+        }
 
-        List<String[]> list = reader.readAll();
+        try {
+            list = reader.readAll();
+        } catch (IOException e) {
+            System.err.println(e);
+        }
 
         String[][] dataArr = new String[list.size()][];
         dataArr = list.toArray(dataArr);
@@ -61,7 +173,7 @@ public class CensusDataset {
         int rows = dataArr.length; //how many rows
         int adultCount = dataArr.length - 1;
 
-        Adult adults[] = new Adult[rows - 1];
+        adults = new Adult[rows - 1];
 
         for (int i = 0; i < adultCount; i++) {
             adults[i] = new Adult(Integer.parseInt(dataArr[i + 1][0]), Integer.parseInt(dataArr[i + 1][1]),
@@ -71,162 +183,34 @@ public class CensusDataset {
                     dataArr[i + 1][14], dataArr[i + 1][15]);
         }
 
-        while (userInput != 0) {
-            System.out.println("Make your selection from the choices below:\n");
-            System.out.println(" 1. Show all adults");
-            System.out.println(" 2. Sort by Gender");
-            System.out.println(" 3. Sort by Country");
-            System.out.println(" 4. Sort by Race");
-            System.out.println(" 5. Sort by Capital Gain");
-            System.out.println(" 6. Sort by Capital Loss");
-            System.out.println(" 7. Selection Sort by Years of Education");
-            System.out.println(" 8. Bubble Sort by Years of Education");
-            System.out.println(" 9. Insertion Sort by Age");
-            System.out.println(" 10. Sort by Occupation");
-            System.out.println(" 11. Show Years Education and Occupation");
-            System.out.println(" 12. Generate a Report");
-            System.out.println(" 13. Search Age");
-            System.out.println(" 14. Search Years of Education");
-            System.out.println(" 15. Binary Search for Capital Gain");
-            System.out.println(" 16. Quick Sort by Age");
-            System.out.println(" 20. Clear Terminal");
-            System.out.println(" 0. Quit");
-
-            //this is where the user puts in their selection/input
-            userInput = 100;
-            try {
-                userInput = kbReader.nextInt();
-            } catch (InputMismatchException ime) {
-            }
-
-            //this is the guts of the program
-            switch (userInput) {
-                case 0: //Quit
-                    break;
-
-                case 1: //summary
-                    for (Adult adult : adults) {
-                        System.out.println(adult.getSummary());
-                    }
-
-                case 2: //Gender sort
-                    Arrays.sort(adults, Adult.AdultGenderComparator);
-                    break;
-
-                case 3: //hours sort
-                    Arrays.sort(adults, Adult.AdultCountryComparator);
-                    break;
-
-                case 4:
-                    Arrays.sort(adults, Adult.AdultRaceComparator);
-                    break;
-
-                case 5:
-                    Arrays.sort(adults, Adult.AdultGainComparator);
-                    break;
-
-                case 6:
-                    Arrays.sort(adults, Adult.AdultLossComparator);
-                    break;
-
-                case 7:
-                    selectionSortYearsEducation(adults);
-                    break;
-
-                case 8:
-                    bubbleSortYearsEducation(adults);
-                    break;
-
-                case 9:
-                    insertionSortAge(adults);
-                    break;
-
-                case 10:
-                    Arrays.sort(adults, Adult.AdultOccComparator); //Arrays.sort(cities, City.CityNameComparator);
-                    break;
-
-                case 11:
-                    for (Adult adult : adults) {
-                        System.out.println(adult.eduNumSummary());
-                    }
-                    break;
-
-                case 12:
-                    for (Adult adult : adults) {
-                        output.println(adult.getSummary());
-                    }
-                    break;
-
-                case 13:
-                    System.out.println("What age do you want to search for?: ");
-                    int ageSearch = 0;
-                    try {
-                        ageSearch = kbReader.nextInt();
-                    } catch (InputMismatchException ime) {
-                        throw new IOException("Could not get int from input", ime);
-                    }
-
-                    for (Adult adult : adults) {
-                        if (adult.getAge() == ageSearch) {
-                            System.out.println(adult.getSummary());
-                        }
-                    }
-                    break;
-
-                case 14:
-                    System.out.println("How many years of education do you want to search for?: ");
-                    int eduNumSearch = 0;
-                    try {
-                        eduNumSearch = kbReader.nextInt();
-                    } catch (InputMismatchException ime) {
-                        throw new IOException("Could not get int from input", ime);
-                    }
-                    for (int i = 0; i < adults.length; i++) {
-                        if (adults[i].getEducationNum() == eduNumSearch) {
-                            System.out.println(adults[i].getSummary());
-                        }
-                    }
-                    break;
-
-                case 15:
-                    System.out.println("What Capital Gain are you looking for?");
-                    try {
-                        userInput = kbReader.nextInt();
-                    } catch (InputMismatchException ime) {
-                        throw new IOException("Could not get int from input", ime);
-                    }
-                    binarySearchCapitalGain(adults, userInput, 0, adults.length - 1);
-                    break;
-
-                case 16:
-                    long t1 = System.nanoTime();
-                    quickSortAge(adults, 0, adults.length - 1);
-                    long t2 = System.nanoTime();
-                    System.out.println("QuickSort ran in " + (t2 - t1) / 10E9 + " seconds.");
-                    break;
-
-                case 20:
-                    System.out.println('\f');
-                    break;
-
-                case 100:
-                    //nothing
-                    break;
-
-                default:
-                    System.out.println("Incorrect Option. Please try again!");
-
-            }
-
-        }
-        System.out.println("Have a nice day!");
+        jtaDisplay.setText(jtaDisplay.getText() + "\nMake your selection from the choices below:"
+                + "\n1. Show all adults (MAY TAKE A LONG TIME!)"
+                + "\n2. Sort by Gender"
+                + "\n3. Sort by Country"
+                + "\n4. Sort by Race"
+                + "\n5. Sort by Capital Gain"
+                + "\n6. Sort by Capital Loss"
+                + "\n7. Selection Sort by Years of Education"
+                + "\n8. Bubble Sort by Years of Education"
+                + "\n9. Insertion Sort by Age"
+                + "\n10. Sort by Occupation"
+                + "\n11. Show Years Education and Occupation"
+                + "\n12. Generate a Report"
+                + "\n13. Search Age"
+                + "\n14. Search Years of Education"
+                + "\n15. Binary Search for Capital Gain"
+                + "\n16. Quick Sort by Age");
     }
 
-    public static int selectionSortYearsEducation(Adult adultsToSort[]) {
+    /**
+     * Selection sort by years education
+     *
+     * @param adultsToSort
+     */
+    private static void selectionSortYearsEducation(Adult adultsToSort[]) {
 
         Adult temp;
         int minIndex;
-        int comparisons = 0;
         for (int i = 0; i < adultsToSort.length; ++i) {
             temp = adultsToSort[i];
             minIndex = i;
@@ -237,18 +221,20 @@ public class CensusDataset {
                     temp = adultsToSort[j];
                     minIndex = j;
                 }
-                comparisons++;
             }
             adultsToSort[minIndex] = adultsToSort[i]; // swap
             adultsToSort[i] = temp;
 
         }
-        return comparisons;
     }
 
-    public static Long bubbleSortYearsEducation(Adult adultsToSort[]) //Bubble Sort
+    /**
+     * Bubble sort by years of education
+     *
+     * @param adultsToSort
+     */
+    private static void bubbleSortYearsEducation(Adult adultsToSort[]) //Bubble Sort
     {
-        long comparisons = 0l;
         boolean loopSomeMore;
         do {
             loopSomeMore = false;
@@ -260,18 +246,19 @@ public class CensusDataset {
                     adultsToSort[j + 1] = temp;
                     loopSomeMore = true;
                 }
-                comparisons++;
 
             }
         } while (loopSomeMore);
-
-        return comparisons;
     }
 
-    public static Long insertionSortAge(Adult adultsToSort[]) { //This will do an ascending sort
+    /**
+     * Insertion sort by age
+     *
+     * @param adultsToSort
+     */
+    private static void insertionSortAge(Adult adultsToSort[]) { //This will do an ascending sort
         Adult adultToInsert;
         int j;
-        Long comparisons = 0l;
         boolean keepGoing;
         //On kth pass, insert item k into its correct position among the first k items in the array
         for (int k = 1; k < adultsToSort.length; k++) {
@@ -292,13 +279,20 @@ public class CensusDataset {
                     keepGoing = false;
                     adultsToSort[j + 1] = adultToInsert;
                 }
-                comparisons++;
             }
         }
-        return comparisons;
     }
 
-    public static String binarySearchCapitalGain(Adult adultsToSort[], double srchVal, int lb, int ub) //recursive
+    /**
+     * Binary search by capital gain
+     *
+     * @param adultsToSort
+     * @param srchVal
+     * @param lb
+     * @param ub
+     * @return results of search
+     */
+    private static String binarySearchCapitalGain(Adult adultsToSort[], double srchVal, int lb, int ub) //recursive
     {
         if (lb > ub) {
             return "Error";
@@ -310,7 +304,7 @@ public class CensusDataset {
                 }
                 mid++;
                 while (adultsToSort[mid].getCapitalGain() == srchVal) {
-                    System.out.println(adultsToSort[mid].getSummary());
+                    jtaDisplay.setText(jtaDisplay.getText() + "\n" + adultsToSort[mid].getSummary());
                     mid++;
                 }
             } else if (srchVal > adultsToSort[mid].getCapitalGain()) {
@@ -322,7 +316,35 @@ public class CensusDataset {
         return null;
     }
 
-    public static int quickSortPartition(Adult arr[], int low, int high) {
+    /**
+     * Quick sort by age
+     *
+     * @param arr
+     * @param low
+     * @param high
+     */
+    private static void quickSortAge(Adult arr[], int low, int high) {
+        if (low < high) {
+            /* pi is partitioning index, arr[pi] is 
+            now at right place */
+            int pi = quickSortPartition(arr, low, high);
+
+            // Recursively sort elements before
+            // partition and after partition
+            quickSortAge(arr, low, pi - 1);
+            quickSortAge(arr, pi + 1, high);
+        }
+    }
+
+    /**
+     * Quick sort partitions for quick sort
+     *
+     * @param arr
+     * @param low
+     * @param high
+     * @return midpoint for next partition
+     */
+    private static int quickSortPartition(Adult arr[], int low, int high) {
         double pivot = arr[high].getAge();
         int i = (low - 1); // index of smaller element
         for (int j = low; j < high; j++) {
@@ -344,16 +366,427 @@ public class CensusDataset {
         return i + 1;
     }
 
-    public static void quickSortAge(Adult arr[], int low, int high) {
-        if (low < high) {
-            /* pi is partitioning index, arr[pi] is 
-            now at right place */
-            int pi = quickSortPartition(arr, low, high);
+    /**
+     * Handles input and output to JFrame
+     */
+    private static class handler implements ActionListener, KeyListener {
 
-            // Recursively sort elements before
-            // partition and after partition
-            quickSortAge(arr, low, pi - 1);
-            quickSortAge(arr, pi + 1, high);
+        /**
+         * On button press prompt GUI or input
+         *
+         * @param ae
+         */
+        @Override
+        public void actionPerformed(ActionEvent ae) {
+            if (ae.getActionCommand().equals("Send")) {
+                input = jtfInput.getText();
+                jtaDisplay.setText(jtaDisplay.getText() + "\nYou: " + input);
+                switch (option) {
+                    case 0:
+                        if (!input.equals("")) {
+                            switch (Integer.valueOf(input)) {
+                                case 1: //summary
+                                    for (Adult adult : adults) {
+                                        jtaDisplay.setText(jtaDisplay.getText() + "\n" + adult.getSummary());
+                                    }
+                                    jtaDisplay.setText(jtaDisplay.getText() + "\nMake your selection from the choices below:"
+                                            + "\n1. Show all adults (MAY TAKE A LONG TIME!)"
+                                            + "\n2. Sort by Gender"
+                                            + "\n3. Sort by Country"
+                                            + "\n4. Sort by Race"
+                                            + "\n5. Sort by Capital Gain"
+                                            + "\n6. Sort by Capital Loss"
+                                            + "\n7. Selection Sort by Years of Education"
+                                            + "\n8. Bubble Sort by Years of Education"
+                                            + "\n9. Insertion Sort by Age"
+                                            + "\n10. Sort by Occupation"
+                                            + "\n11. Show Years Education and Occupation"
+                                            + "\n12. Generate a Report"
+                                            + "\n13. Search Age"
+                                            + "\n14. Search Years of Education"
+                                            + "\n15. Binary Search for Capital Gain"
+                                            + "\n16. Quick Sort by Age");
+                                    break;
+                                case 2: //Gender sort
+                                    Arrays.sort(adults, Adult.AdultGenderComparator);
+                                    jtaDisplay.setText(jtaDisplay.getText() + "\nMake your selection from the choices below:"
+                                            + "\n1. Show all adults (MAY TAKE A LONG TIME!)"
+                                            + "\n2. Sort by Gender"
+                                            + "\n3. Sort by Country"
+                                            + "\n4. Sort by Race"
+                                            + "\n5. Sort by Capital Gain"
+                                            + "\n6. Sort by Capital Loss"
+                                            + "\n7. Selection Sort by Years of Education"
+                                            + "\n8. Bubble Sort by Years of Education"
+                                            + "\n9. Insertion Sort by Age"
+                                            + "\n10. Sort by Occupation"
+                                            + "\n11. Show Years Education and Occupation"
+                                            + "\n12. Generate a Report"
+                                            + "\n13. Search Age"
+                                            + "\n14. Search Years of Education"
+                                            + "\n15. Binary Search for Capital Gain"
+                                            + "\n16. Quick Sort by Age");
+                                    break;
+                                case 3: //hours sort
+                                    Arrays.sort(adults, Adult.AdultCountryComparator);
+                                    jtaDisplay.setText(jtaDisplay.getText() + "\nMake your selection from the choices below:"
+                                            + "\n1. Show all adults (MAY TAKE A LONG TIME!)"
+                                            + "\n2. Sort by Gender"
+                                            + "\n3. Sort by Country"
+                                            + "\n4. Sort by Race"
+                                            + "\n5. Sort by Capital Gain"
+                                            + "\n6. Sort by Capital Loss"
+                                            + "\n7. Selection Sort by Years of Education"
+                                            + "\n8. Bubble Sort by Years of Education"
+                                            + "\n9. Insertion Sort by Age"
+                                            + "\n10. Sort by Occupation"
+                                            + "\n11. Show Years Education and Occupation"
+                                            + "\n12. Generate a Report"
+                                            + "\n13. Search Age"
+                                            + "\n14. Search Years of Education"
+                                            + "\n15. Binary Search for Capital Gain"
+                                            + "\n16. Quick Sort by Age");
+                                    break;
+                                case 4:
+                                    Arrays.sort(adults, Adult.AdultRaceComparator);
+                                    jtaDisplay.setText(jtaDisplay.getText() + "\nMake your selection from the choices below:"
+                                            + "\n1. Show all adults (MAY TAKE A LONG TIME!)"
+                                            + "\n2. Sort by Gender"
+                                            + "\n3. Sort by Country"
+                                            + "\n4. Sort by Race"
+                                            + "\n5. Sort by Capital Gain"
+                                            + "\n6. Sort by Capital Loss"
+                                            + "\n7. Selection Sort by Years of Education"
+                                            + "\n8. Bubble Sort by Years of Education"
+                                            + "\n9. Insertion Sort by Age"
+                                            + "\n10. Sort by Occupation"
+                                            + "\n11. Show Years Education and Occupation"
+                                            + "\n12. Generate a Report"
+                                            + "\n13. Search Age"
+                                            + "\n14. Search Years of Education"
+                                            + "\n15. Binary Search for Capital Gain"
+                                            + "\n16. Quick Sort by Age");
+                                    break;
+
+                                case 5:
+                                    Arrays.sort(adults, Adult.AdultGainComparator);
+                                    jtaDisplay.setText(jtaDisplay.getText() + "\nMake your selection from the choices below:"
+                                            + "\n1. Show all adults (MAY TAKE A LONG TIME!)"
+                                            + "\n2. Sort by Gender"
+                                            + "\n3. Sort by Country"
+                                            + "\n4. Sort by Race"
+                                            + "\n5. Sort by Capital Gain"
+                                            + "\n6. Sort by Capital Loss"
+                                            + "\n7. Selection Sort by Years of Education"
+                                            + "\n8. Bubble Sort by Years of Education"
+                                            + "\n9. Insertion Sort by Age"
+                                            + "\n10. Sort by Occupation"
+                                            + "\n11. Show Years Education and Occupation"
+                                            + "\n12. Generate a Report"
+                                            + "\n13. Search Age"
+                                            + "\n14. Search Years of Education"
+                                            + "\n15. Binary Search for Capital Gain"
+                                            + "\n16. Quick Sort by Age");
+                                    break;
+
+                                case 6:
+                                    Arrays.sort(adults, Adult.AdultLossComparator);
+                                    jtaDisplay.setText(jtaDisplay.getText() + "\nMake your selection from the choices below:"
+                                            + "\n1. Show all adults (MAY TAKE A LONG TIME!)"
+                                            + "\n2. Sort by Gender"
+                                            + "\n3. Sort by Country"
+                                            + "\n4. Sort by Race"
+                                            + "\n5. Sort by Capital Gain"
+                                            + "\n6. Sort by Capital Loss"
+                                            + "\n7. Selection Sort by Years of Education"
+                                            + "\n8. Bubble Sort by Years of Education"
+                                            + "\n9. Insertion Sort by Age"
+                                            + "\n10. Sort by Occupation"
+                                            + "\n11. Show Years Education and Occupation"
+                                            + "\n12. Generate a Report"
+                                            + "\n13. Search Age"
+                                            + "\n14. Search Years of Education"
+                                            + "\n15. Binary Search for Capital Gain"
+                                            + "\n16. Quick Sort by Age");
+                                    break;
+
+                                case 7:
+                                    selectionSortYearsEducation(adults);
+                                    jtaDisplay.setText(jtaDisplay.getText() + "\nMake your selection from the choices below:"
+                                            + "\n1. Show all adults (MAY TAKE A LONG TIME!)"
+                                            + "\n2. Sort by Gender"
+                                            + "\n3. Sort by Country"
+                                            + "\n4. Sort by Race"
+                                            + "\n5. Sort by Capital Gain"
+                                            + "\n6. Sort by Capital Loss"
+                                            + "\n7. Selection Sort by Years of Education"
+                                            + "\n8. Bubble Sort by Years of Education"
+                                            + "\n9. Insertion Sort by Age"
+                                            + "\n10. Sort by Occupation"
+                                            + "\n11. Show Years Education and Occupation"
+                                            + "\n12. Generate a Report"
+                                            + "\n13. Search Age"
+                                            + "\n14. Search Years of Education"
+                                            + "\n15. Binary Search for Capital Gain"
+                                            + "\n16. Quick Sort by Age");
+                                    break;
+
+                                case 8:
+                                    bubbleSortYearsEducation(adults);
+                                    jtaDisplay.setText(jtaDisplay.getText() + "\nMake your selection from the choices below:"
+                                            + "\n1. Show all adults (MAY TAKE A LONG TIME!)"
+                                            + "\n2. Sort by Gender"
+                                            + "\n3. Sort by Country"
+                                            + "\n4. Sort by Race"
+                                            + "\n5. Sort by Capital Gain"
+                                            + "\n6. Sort by Capital Loss"
+                                            + "\n7. Selection Sort by Years of Education"
+                                            + "\n8. Bubble Sort by Years of Education"
+                                            + "\n9. Insertion Sort by Age"
+                                            + "\n10. Sort by Occupation"
+                                            + "\n11. Show Years Education and Occupation"
+                                            + "\n12. Generate a Report"
+                                            + "\n13. Search Age"
+                                            + "\n14. Search Years of Education"
+                                            + "\n15. Binary Search for Capital Gain"
+                                            + "\n16. Quick Sort by Age");
+                                    break;
+
+                                case 9:
+                                    insertionSortAge(adults);
+                                    jtaDisplay.setText(jtaDisplay.getText() + "\nMake your selection from the choices below:"
+                                            + "\n1. Show all adults (MAY TAKE A LONG TIME!)"
+                                            + "\n2. Sort by Gender"
+                                            + "\n3. Sort by Country"
+                                            + "\n4. Sort by Race"
+                                            + "\n5. Sort by Capital Gain"
+                                            + "\n6. Sort by Capital Loss"
+                                            + "\n7. Selection Sort by Years of Education"
+                                            + "\n8. Bubble Sort by Years of Education"
+                                            + "\n9. Insertion Sort by Age"
+                                            + "\n10. Sort by Occupation"
+                                            + "\n11. Show Years Education and Occupation"
+                                            + "\n12. Generate a Report"
+                                            + "\n13. Search Age"
+                                            + "\n14. Search Years of Education"
+                                            + "\n15. Binary Search for Capital Gain"
+                                            + "\n16. Quick Sort by Age");
+                                    break;
+
+                                case 10:
+                                    Arrays.sort(adults, Adult.AdultOccComparator);
+                                    jtaDisplay.setText(jtaDisplay.getText() + "\nMake your selection from the choices below:"
+                                            + "\n1. Show all adults (MAY TAKE A LONG TIME!)"
+                                            + "\n2. Sort by Gender"
+                                            + "\n3. Sort by Country"
+                                            + "\n4. Sort by Race"
+                                            + "\n5. Sort by Capital Gain"
+                                            + "\n6. Sort by Capital Loss"
+                                            + "\n7. Selection Sort by Years of Education"
+                                            + "\n8. Bubble Sort by Years of Education"
+                                            + "\n9. Insertion Sort by Age"
+                                            + "\n10. Sort by Occupation"
+                                            + "\n11. Show Years Education and Occupation"
+                                            + "\n12. Generate a Report"
+                                            + "\n13. Search Age"
+                                            + "\n14. Search Years of Education"
+                                            + "\n15. Binary Search for Capital Gain"
+                                            + "\n16. Quick Sort by Age");
+                                    break;
+
+                                case 11:
+                                    for (Adult adult : adults) {
+                                        jtaDisplay.setText(jtaDisplay.getText() + "\n" + adult.eduNumSummary());
+                                    }
+                                    jtaDisplay.setText(jtaDisplay.getText() + "\nMake your selection from the choices below:"
+                                            + "\n1. Show all adults (MAY TAKE A LONG TIME!)"
+                                            + "\n2. Sort by Gender"
+                                            + "\n3. Sort by Country"
+                                            + "\n4. Sort by Race"
+                                            + "\n5. Sort by Capital Gain"
+                                            + "\n6. Sort by Capital Loss"
+                                            + "\n7. Selection Sort by Years of Education"
+                                            + "\n8. Bubble Sort by Years of Education"
+                                            + "\n9. Insertion Sort by Age"
+                                            + "\n10. Sort by Occupation"
+                                            + "\n11. Show Years Education and Occupation"
+                                            + "\n12. Generate a Report"
+                                            + "\n13. Search Age"
+                                            + "\n14. Search Years of Education"
+                                            + "\n15. Binary Search for Capital Gain"
+                                            + "\n16. Quick Sort by Age");
+                                    break;
+                                case 12:
+                                    for (Adult adult : adults) {
+                                        output.println(adult.getSummary());
+                                    }
+                                    jtaDisplay.setText(jtaDisplay.getText() + "\nMake your selection from the choices below:"
+                                            + "\n1. Show all adults (MAY TAKE A LONG TIME!)"
+                                            + "\n2. Sort by Gender"
+                                            + "\n3. Sort by Country"
+                                            + "\n4. Sort by Race"
+                                            + "\n5. Sort by Capital Gain"
+                                            + "\n6. Sort by Capital Loss"
+                                            + "\n7. Selection Sort by Years of Education"
+                                            + "\n8. Bubble Sort by Years of Education"
+                                            + "\n9. Insertion Sort by Age"
+                                            + "\n10. Sort by Occupation"
+                                            + "\n11. Show Years Education and Occupation"
+                                            + "\n12. Generate a Report"
+                                            + "\n13. Search Age"
+                                            + "\n14. Search Years of Education"
+                                            + "\n15. Binary Search for Capital Gain"
+                                            + "\n16. Quick Sort by Age");
+                                    break;
+                                case 13:
+                                    jtaDisplay.setText(jtaDisplay.getText() + "\nWhat age do you want to search for?: ");
+                                    option = 1;
+                                    break;
+
+                                case 14:
+                                    jtaDisplay.setText(jtaDisplay.getText() + "\nHow many years of education do you want to search for?: ");
+                                    option = 2;
+                                    break;
+
+                                case 15:
+                                    jtaDisplay.setText(jtaDisplay.getText() + "\nWhat Capital Gain are you looking for?");
+                                    option = 3;
+                                    break;
+
+                                case 16:
+                                    long t1 = System.nanoTime();
+                                    quickSortAge(adults, 0, adults.length - 1);
+                                    long t2 = System.nanoTime();
+                                    jtaDisplay.setText(jtaDisplay.getText() + "\nQuickSort ran in " + (t2 - t1) / 10E9 + " seconds.");
+                                    jtaDisplay.setText(jtaDisplay.getText() + "\nMake your selection from the choices below:"
+                                            + "\n1. Show all adults (MAY TAKE A LONG TIME!)"
+                                            + "\n2. Sort by Gender"
+                                            + "\n3. Sort by Country"
+                                            + "\n4. Sort by Race"
+                                            + "\n5. Sort by Capital Gain"
+                                            + "\n6. Sort by Capital Loss"
+                                            + "\n7. Selection Sort by Years of Education"
+                                            + "\n8. Bubble Sort by Years of Education"
+                                            + "\n9. Insertion Sort by Age"
+                                            + "\n10. Sort by Occupation"
+                                            + "\n11. Show Years Education and Occupation"
+                                            + "\n12. Generate a Report"
+                                            + "\n13. Search Age"
+                                            + "\n14. Search Years of Education"
+                                            + "\n15. Binary Search for Capital Gain"
+                                            + "\n16. Quick Sort by Age");
+                                    break;
+                                default:
+                                    jtaDisplay.setText(jtaDisplay.getText() + "\n\"" + input + "\" is not recognized as a valid input.");
+                                    jtaDisplay.setText(jtaDisplay.getText() + "\nMake your selection from the choices below:"
+                                            + "\n1. Show all adults (MAY TAKE A LONG TIME!)"
+                                            + "\n2. Sort by Gender"
+                                            + "\n3. Sort by Country"
+                                            + "\n4. Sort by Race"
+                                            + "\n5. Sort by Capital Gain"
+                                            + "\n6. Sort by Capital Loss"
+                                            + "\n7. Selection Sort by Years of Education"
+                                            + "\n8. Bubble Sort by Years of Education"
+                                            + "\n9. Insertion Sort by Age"
+                                            + "\n10. Sort by Occupation"
+                                            + "\n11. Show Years Education and Occupation"
+                                            + "\n12. Generate a Report"
+                                            + "\n13. Search Age"
+                                            + "\n14. Search Years of Education"
+                                            + "\n15. Binary Search for Capital Gain"
+                                            + "\n16. Quick Sort by Age");
+                                    break;
+                            }
+                        }
+
+                        break;
+                    case 1:
+                        for (Adult adult : adults) {
+                            if (adult.getAge() == Integer.valueOf(input)) {
+                                jtaDisplay.setText(jtaDisplay.getText() + "\n" + adult.getSummary());
+                            }
+                        }
+                        jtaDisplay.setText(jtaDisplay.getText() + "\nMake your selection from the choices below:"
+                                + "\n1. Show all adults (MAY TAKE A LONG TIME!)"
+                                + "\n2. Sort by Gender"
+                                + "\n3. Sort by Country"
+                                + "\n4. Sort by Race"
+                                + "\n5. Sort by Capital Gain"
+                                + "\n6. Sort by Capital Loss"
+                                + "\n7. Selection Sort by Years of Education"
+                                + "\n8. Bubble Sort by Years of Education"
+                                + "\n9. Insertion Sort by Age"
+                                + "\n10. Sort by Occupation"
+                                + "\n11. Show Years Education and Occupation"
+                                + "\n12. Generate a Report"
+                                + "\n13. Search Age"
+                                + "\n14. Search Years of Education"
+                                + "\n15. Binary Search for Capital Gain"
+                                + "\n16. Quick Sort by Age");
+                        option = 0;
+                        break;
+                    case 2:
+                        for (Adult adult : adults) {
+                            if (adult.getEducationNum() == Integer.valueOf(input)) {
+                                jtaDisplay.setText(jtaDisplay.getText() + "\n" + adult.getSummary());
+                            }
+                        }
+                        jtaDisplay.setText(jtaDisplay.getText() + "\nMake your selection from the choices below:"
+                                + "\n1. Show all adults (MAY TAKE A LONG TIME!)"
+                                + "\n2. Sort by Gender"
+                                + "\n3. Sort by Country"
+                                + "\n4. Sort by Race"
+                                + "\n5. Sort by Capital Gain"
+                                + "\n6. Sort by Capital Loss"
+                                + "\n7. Selection Sort by Years of Education"
+                                + "\n8. Bubble Sort by Years of Education"
+                                + "\n9. Insertion Sort by Age"
+                                + "\n10. Sort by Occupation"
+                                + "\n11. Show Years Education and Occupation"
+                                + "\n12. Generate a Report"
+                                + "\n13. Search Age"
+                                + "\n14. Search Years of Education"
+                                + "\n15. Binary Search for Capital Gain"
+                                + "\n16. Quick Sort by Age");
+                        option = 0;
+                        break;
+                    case 3:
+                        binarySearchCapitalGain(adults, Integer.valueOf(input), 0, adults.length - 1);
+                        break;
+                }
+            }
+            jtfInput.setText("");
+            jfrm.repaint();
+        }
+
+        /**
+         * Enter key counts as send button
+         *
+         * @param ke
+         */
+        @Override
+        public void keyPressed(KeyEvent ke) {
+            if (ke.getKeyCode() == KeyEvent.VK_ENTER) {
+                actionPerformed(sendOverride);
+            }
+        }
+
+        /**
+         * Necessary override
+         *
+         * @param ke
+         */
+        @Override
+        public void keyTyped(KeyEvent ke) {
+        }
+
+        /**
+         * Necessary override
+         *
+         * @param ke
+         */
+        @Override
+        public void keyReleased(KeyEvent ke) {
         }
     }
 }
