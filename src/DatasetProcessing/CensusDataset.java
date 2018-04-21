@@ -52,7 +52,7 @@ import java.util.List;
  * A class to sort through a large CSV file
  *
  * @author: NTropy
- * @version: 11/17/2017
+ * @version: 2.0
  */
 public class CensusDataset extends JPanel {
 
