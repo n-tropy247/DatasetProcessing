@@ -103,7 +103,7 @@ public class CensusDataset extends JPanel {
 
         option = 0;
 
-        jfrm = new JFrame("Airport Queue");
+        jfrm = new JFrame("Census Data");
         jfrm.setLayout(new BorderLayout()); //sets layout based on borders
         jfrm.setSize(700, 600); //sets size
 
