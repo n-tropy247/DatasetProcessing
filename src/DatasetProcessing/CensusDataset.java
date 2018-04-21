@@ -47,7 +47,6 @@ import javax.swing.UIManager.LookAndFeelInfo;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Scanner;
 
 /**
  * A class to sort through a large CSV file
@@ -58,6 +57,8 @@ import java.util.Scanner;
 public class CensusDataset extends JPanel {
 
     private static ActionEvent sendOverride;
+
+    private static Adult adults[];
 
     private static CSVReader reader;
 
@@ -81,9 +82,7 @@ public class CensusDataset extends JPanel {
 
     private static String input;
 
-    private static Adult adults[];
-
-    static Scanner kbReader = new Scanner(System.in);
+    private static String[] summaryArr;
 
     /**
      * Creates JFrame and populate array from CSV
@@ -181,6 +180,14 @@ public class CensusDataset extends JPanel {
                     dataArr[i + 1][6], dataArr[i + 1][7], dataArr[i + 1][8], dataArr[i + 1][9], dataArr[i + 1][10],
                     Double.parseDouble(dataArr[i + 1][11]), Double.parseDouble(dataArr[i + 1][12]), Double.parseDouble(dataArr[i + 1][13]),
                     dataArr[i + 1][14], dataArr[i + 1][15]);
+        }
+
+        summaryArr = new String[rows - 1];
+
+        int iter = 0;
+        for (Adult adult : adults) {
+            summaryArr[iter] = adult.getSummary();
+            iter++;
         }
 
         jtaDisplay.setText(jtaDisplay.getText() + "\nMake your selection from the choices below:"
@@ -386,8 +393,14 @@ public class CensusDataset extends JPanel {
                         if (!input.equals("")) {
                             switch (Integer.valueOf(input)) {
                                 case 1: //summary
-                                    for (Adult adult : adults) {
-                                        jtaDisplay.setText(jtaDisplay.getText() + "\n" + adult.getSummary());
+                                    for (String summary : summaryArr) {
+                                        jtaDisplay.setText(jtaDisplay.getText() + "\n" + summary);
+                                        try {
+                                            Thread.sleep(100);
+                                        } catch (InterruptedException e) {
+                                            System.err.println(e);
+                                        }
+                                        jfrm.repaint();
                                     }
                                     jtaDisplay.setText(jtaDisplay.getText() + "\nMake your selection from the choices below:"
                                             + "\n1. Show all adults (MAY TAKE A LONG TIME!)"
