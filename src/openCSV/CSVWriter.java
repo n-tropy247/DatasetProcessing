@@ -157,9 +157,9 @@ public class CSVWriter implements Closeable, Flushable {
      *                         quote or new line characters.
      */
     public void writeAll(List<String[]> allLines, boolean applyQuotesToAll) {
-        for (String[] line : allLines) {
+        allLines.forEach((line) -> {
             writeNext(line, applyQuotesToAll);
-        }
+        });
     }
 
     /**
@@ -170,9 +170,9 @@ public class CSVWriter implements Closeable, Flushable {
      *                 the file.
      */
     public void writeAll(List<String[]> allLines) {
-        for (String[] line : allLines) {
+        allLines.forEach((line) -> {
             writeNext(line);
-        }
+        });
     }
 
     protected void writeColumnNames(ResultSet rs)
@@ -183,7 +183,7 @@ public class CSVWriter implements Closeable, Flushable {
 
     /**
      * Writes the entire ResultSet to a CSV file.
-     * <p/>
+     * <p/ >
      * The caller is responsible for closing the ResultSet.
      *
      * @param rs                 the recordset to write
@@ -197,9 +197,12 @@ public class CSVWriter implements Closeable, Flushable {
 
     /**
      * Writes the entire ResultSet to a CSV file.
-     * <p/>
+     * <p/ >
      * The caller is responsible for closing the ResultSet.
      *
+     * @param rs
+     * @param includeColumnNames
+     * @param trim
      * @throws java.io.IOException   thrown by getColumnValue
      * @throws java.sql.SQLException thrown by getColumnValue
      */
@@ -270,7 +273,7 @@ public class CSVWriter implements Closeable, Flushable {
     }
 
     private boolean stringContainsSpecialCharacters(String line) {
-        return line.indexOf(quotechar) != -1 || line.indexOf(escapechar) != -1 || line.indexOf(separator) != -1 || line.indexOf("\n") != -1 || line.indexOf("\r") != -1;
+        return line.indexOf(quotechar) != -1 || line.indexOf(escapechar) != -1 || line.indexOf(separator) != -1 || line.contains("\n") || line.contains("\r");
     }
 
     protected StringBuilder processLine(String nextElement) {
@@ -294,6 +297,7 @@ public class CSVWriter implements Closeable, Flushable {
      *
      * @throws IOException if bad things happen
      */
+    @Override
     public void flush() throws IOException {
 
         pw.flush();
@@ -305,6 +309,7 @@ public class CSVWriter implements Closeable, Flushable {
      *
      * @throws IOException if bad things happen
      */
+    @Override
     public void close() throws IOException {
         flush();
         pw.close();
@@ -313,6 +318,7 @@ public class CSVWriter implements Closeable, Flushable {
 
     /**
      * Checks to see if the there has been an error in the printstream.
+     * @return 
      */
     public boolean checkError() {
         return pw.checkError();

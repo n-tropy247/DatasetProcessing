@@ -14,7 +14,7 @@ package openCSV;
 
 /**
  * Builder for creating a CSVParser.
- * <p/>
+ * <p/ >
  * <code>
  * final CSVParser parser =
  * new CSVParserBuilder()

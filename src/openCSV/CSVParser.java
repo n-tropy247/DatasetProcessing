@@ -157,6 +157,7 @@ public class CSVParser {
      * @param escape                  the character to use for escaping a separator or quote
      * @param strictQuotes            if true, characters outside the quotes are ignored
      * @param ignoreLeadingWhiteSpace if true, white space in front of a quote in a field is ignored
+     * @param ignoreQuotations
      */
     public CSVParser(char separator, char quotechar, char escape, boolean strictQuotes, boolean ignoreLeadingWhiteSpace,
                      boolean ignoreQuotations) {
@@ -221,7 +222,7 @@ public class CSVParser {
             }
         }
 
-        List<String> tokensOnThisLine = new ArrayList<String>();
+        List<String> tokensOnThisLine = new ArrayList<>();
         StringBuilder sb = new StringBuilder(INITIAL_READ_SIZE);
         boolean inQuotes = false;
         if (pending != null) {

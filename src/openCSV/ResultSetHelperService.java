@@ -36,8 +36,9 @@ public class ResultSetHelperService implements ResultSetHelper {
     static final String DEFAULT_DATE_FORMAT = "dd-MMM-yyyy";
     static final String DEFAULT_TIMESTAMP_FORMAT = "dd-MMM-yyyy HH:mm:ss";
 
+    @Override
     public String[] getColumnNames(ResultSet rs) throws SQLException {
-        List<String> names = new ArrayList<String>();
+        List<String> names = new ArrayList<>();
         ResultSetMetaData metadata = rs.getMetaData();
 
         for (int i = 0; i < metadata.getColumnCount(); i++) {
@@ -48,16 +49,44 @@ public class ResultSetHelperService implements ResultSetHelper {
         return names.toArray(nameArray);
     }
 
+    /**
+     *
+     * @param rs
+     * @return
+     * @throws SQLException
+     * @throws IOException
+     */
+    @Override
     public String[] getColumnValues(ResultSet rs) throws SQLException, IOException {
         return this.getColumnValues(rs, false, DEFAULT_DATE_FORMAT, DEFAULT_TIMESTAMP_FORMAT);
     }
 
+    /**
+     *
+     * @param rs
+     * @param trim
+     * @return
+     * @throws SQLException
+     * @throws IOException
+     */
+    @Override
     public String[] getColumnValues(ResultSet rs, boolean trim) throws SQLException, IOException {
         return this.getColumnValues(rs, trim, DEFAULT_DATE_FORMAT, DEFAULT_TIMESTAMP_FORMAT);
     }
 
+    /**
+     *
+     * @param rs
+     * @param trim
+     * @param dateFormatString
+     * @param timeFormatString
+     * @return
+     * @throws SQLException
+     * @throws IOException
+     */
+    @Override
     public String[] getColumnValues(ResultSet rs, boolean trim, String dateFormatString, String timeFormatString) throws SQLException, IOException {
-        List<String> values = new ArrayList<String>();
+        List<String> values = new ArrayList<>();
         ResultSetMetaData metadata = rs.getMetaData();
 
         for (int i = 0; i < metadata.getColumnCount(); i++) {
@@ -117,7 +146,7 @@ public class ResultSetHelperService implements ResultSetHelper {
                 break;
             case Types.BOOLEAN:
                 boolean b = rs.getBoolean(colIndex);
-                value = Boolean.valueOf(b).toString();
+                value = Boolean.toString(b);
                 break;
             case NCLOB: // todo : use rs.getNClob
             case Types.CLOB:

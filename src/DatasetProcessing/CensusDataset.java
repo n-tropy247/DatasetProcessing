@@ -81,8 +81,9 @@ public class CensusDataset extends JPanel {
     private static PrintWriter output;
 
     private static String input;
+    private static String fullSummary;
 
-    private static String[] summaryArr;
+    private static String[] summary;
 
     /**
      * Creates JFrame and populate array from CSV
@@ -141,8 +142,6 @@ public class CensusDataset extends JPanel {
 
         jfrm.add(p1, BorderLayout.PAGE_END); //add button/input to main frame
 
-        jfrm.setVisible(true); //makes frame visible
-
         jfrm.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); //kills application on close
 
         try {
@@ -182,16 +181,20 @@ public class CensusDataset extends JPanel {
                     dataArr[i + 1][14], dataArr[i + 1][15]);
         }
 
-        summaryArr = new String[rows - 1];
+        summary = new String[rows - 1];
 
         int iter = 0;
+
         for (Adult adult : adults) {
-            summaryArr[iter] = adult.getSummary();
-            iter++;
+            summary[iter++] = adult.getSummary();
         }
 
+        fullSummary = String.join("\n", summary);
+
+        jfrm.setVisible(true); //makes frame visible
+
         jtaDisplay.setText(jtaDisplay.getText() + "\nMake your selection from the choices below:"
-                + "\n1. Show all adults (MAY TAKE A LONG TIME!)"
+                + "\n1. Show all adults"
                 + "\n2. Sort by Gender"
                 + "\n3. Sort by Country"
                 + "\n4. Sort by Race"
@@ -387,23 +390,15 @@ public class CensusDataset extends JPanel {
         public void actionPerformed(ActionEvent ae) {
             if (ae.getActionCommand().equals("Send")) {
                 input = jtfInput.getText();
-                jtaDisplay.setText(jtaDisplay.getText() + "\nYou: " + input);
+                jtaDisplay.setText(jtaDisplay.getText() + "\nYou:" + input);
                 switch (option) {
                     case 0:
                         if (!input.equals("")) {
                             switch (Integer.valueOf(input)) {
                                 case 1: //summary
-                                    for (String summary : summaryArr) {
-                                        jtaDisplay.setText(jtaDisplay.getText() + "\n" + summary);
-                                        try {
-                                            Thread.sleep(100);
-                                        } catch (InterruptedException e) {
-                                            System.err.println(e);
-                                        }
-                                        jfrm.repaint();
-                                    }
+                                    jtaDisplay.setText(jtaDisplay.getText() + fullSummary);
                                     jtaDisplay.setText(jtaDisplay.getText() + "\nMake your selection from the choices below:"
-                                            + "\n1. Show all adults (MAY TAKE A LONG TIME!)"
+                                            + "\n1. Show all adults"
                                             + "\n2. Sort by Gender"
                                             + "\n3. Sort by Country"
                                             + "\n4. Sort by Race"
@@ -423,7 +418,7 @@ public class CensusDataset extends JPanel {
                                 case 2: //Gender sort
                                     Arrays.sort(adults, Adult.AdultGenderComparator);
                                     jtaDisplay.setText(jtaDisplay.getText() + "\nMake your selection from the choices below:"
-                                            + "\n1. Show all adults (MAY TAKE A LONG TIME!)"
+                                            + "\n1. Show all adults"
                                             + "\n2. Sort by Gender"
                                             + "\n3. Sort by Country"
                                             + "\n4. Sort by Race"
@@ -443,7 +438,7 @@ public class CensusDataset extends JPanel {
                                 case 3: //hours sort
                                     Arrays.sort(adults, Adult.AdultCountryComparator);
                                     jtaDisplay.setText(jtaDisplay.getText() + "\nMake your selection from the choices below:"
-                                            + "\n1. Show all adults (MAY TAKE A LONG TIME!)"
+                                            + "\n1. Show all adults"
                                             + "\n2. Sort by Gender"
                                             + "\n3. Sort by Country"
                                             + "\n4. Sort by Race"
@@ -463,7 +458,7 @@ public class CensusDataset extends JPanel {
                                 case 4:
                                     Arrays.sort(adults, Adult.AdultRaceComparator);
                                     jtaDisplay.setText(jtaDisplay.getText() + "\nMake your selection from the choices below:"
-                                            + "\n1. Show all adults (MAY TAKE A LONG TIME!)"
+                                            + "\n1. Show all adults"
                                             + "\n2. Sort by Gender"
                                             + "\n3. Sort by Country"
                                             + "\n4. Sort by Race"
@@ -484,7 +479,7 @@ public class CensusDataset extends JPanel {
                                 case 5:
                                     Arrays.sort(adults, Adult.AdultGainComparator);
                                     jtaDisplay.setText(jtaDisplay.getText() + "\nMake your selection from the choices below:"
-                                            + "\n1. Show all adults (MAY TAKE A LONG TIME!)"
+                                            + "\n1. Show all adults"
                                             + "\n2. Sort by Gender"
                                             + "\n3. Sort by Country"
                                             + "\n4. Sort by Race"
@@ -505,7 +500,7 @@ public class CensusDataset extends JPanel {
                                 case 6:
                                     Arrays.sort(adults, Adult.AdultLossComparator);
                                     jtaDisplay.setText(jtaDisplay.getText() + "\nMake your selection from the choices below:"
-                                            + "\n1. Show all adults (MAY TAKE A LONG TIME!)"
+                                            + "\n1. Show all adults"
                                             + "\n2. Sort by Gender"
                                             + "\n3. Sort by Country"
                                             + "\n4. Sort by Race"
@@ -526,7 +521,7 @@ public class CensusDataset extends JPanel {
                                 case 7:
                                     selectionSortYearsEducation(adults);
                                     jtaDisplay.setText(jtaDisplay.getText() + "\nMake your selection from the choices below:"
-                                            + "\n1. Show all adults (MAY TAKE A LONG TIME!)"
+                                            + "\n1. Show all adults"
                                             + "\n2. Sort by Gender"
                                             + "\n3. Sort by Country"
                                             + "\n4. Sort by Race"
@@ -547,7 +542,7 @@ public class CensusDataset extends JPanel {
                                 case 8:
                                     bubbleSortYearsEducation(adults);
                                     jtaDisplay.setText(jtaDisplay.getText() + "\nMake your selection from the choices below:"
-                                            + "\n1. Show all adults (MAY TAKE A LONG TIME!)"
+                                            + "\n1. Show all adults"
                                             + "\n2. Sort by Gender"
                                             + "\n3. Sort by Country"
                                             + "\n4. Sort by Race"
@@ -568,7 +563,7 @@ public class CensusDataset extends JPanel {
                                 case 9:
                                     insertionSortAge(adults);
                                     jtaDisplay.setText(jtaDisplay.getText() + "\nMake your selection from the choices below:"
-                                            + "\n1. Show all adults (MAY TAKE A LONG TIME!)"
+                                            + "\n1. Show all adults"
                                             + "\n2. Sort by Gender"
                                             + "\n3. Sort by Country"
                                             + "\n4. Sort by Race"
@@ -589,7 +584,7 @@ public class CensusDataset extends JPanel {
                                 case 10:
                                     Arrays.sort(adults, Adult.AdultOccComparator);
                                     jtaDisplay.setText(jtaDisplay.getText() + "\nMake your selection from the choices below:"
-                                            + "\n1. Show all adults (MAY TAKE A LONG TIME!)"
+                                            + "\n1. Show all adults"
                                             + "\n2. Sort by Gender"
                                             + "\n3. Sort by Country"
                                             + "\n4. Sort by Race"
@@ -612,7 +607,7 @@ public class CensusDataset extends JPanel {
                                         jtaDisplay.setText(jtaDisplay.getText() + "\n" + adult.eduNumSummary());
                                     }
                                     jtaDisplay.setText(jtaDisplay.getText() + "\nMake your selection from the choices below:"
-                                            + "\n1. Show all adults (MAY TAKE A LONG TIME!)"
+                                            + "\n1. Show all adults"
                                             + "\n2. Sort by Gender"
                                             + "\n3. Sort by Country"
                                             + "\n4. Sort by Race"
@@ -634,7 +629,7 @@ public class CensusDataset extends JPanel {
                                         output.println(adult.getSummary());
                                     }
                                     jtaDisplay.setText(jtaDisplay.getText() + "\nMake your selection from the choices below:"
-                                            + "\n1. Show all adults (MAY TAKE A LONG TIME!)"
+                                            + "\n1. Show all adults"
                                             + "\n2. Sort by Gender"
                                             + "\n3. Sort by Country"
                                             + "\n4. Sort by Race"
@@ -652,12 +647,12 @@ public class CensusDataset extends JPanel {
                                             + "\n16. Quick Sort by Age");
                                     break;
                                 case 13:
-                                    jtaDisplay.setText(jtaDisplay.getText() + "\nWhat age do you want to search for?: ");
+                                    jtaDisplay.setText(jtaDisplay.getText() + "\nWhat age do you want to search for?:");
                                     option = 1;
                                     break;
 
                                 case 14:
-                                    jtaDisplay.setText(jtaDisplay.getText() + "\nHow many years of education do you want to search for?: ");
+                                    jtaDisplay.setText(jtaDisplay.getText() + "\nHow many years of education do you want to search for?:");
                                     option = 2;
                                     break;
 
@@ -670,9 +665,9 @@ public class CensusDataset extends JPanel {
                                     long t1 = System.nanoTime();
                                     quickSortAge(adults, 0, adults.length - 1);
                                     long t2 = System.nanoTime();
-                                    jtaDisplay.setText(jtaDisplay.getText() + "\nQuickSort ran in " + (t2 - t1) / 10E9 + " seconds.");
+                                    jtaDisplay.setText(jtaDisplay.getText() + "\nQuickSort ran in" + (t2 - t1) / 10E9 + " seconds.");
                                     jtaDisplay.setText(jtaDisplay.getText() + "\nMake your selection from the choices below:"
-                                            + "\n1. Show all adults (MAY TAKE A LONG TIME!)"
+                                            + "\n1. Show all adults"
                                             + "\n2. Sort by Gender"
                                             + "\n3. Sort by Country"
                                             + "\n4. Sort by Race"
@@ -692,7 +687,7 @@ public class CensusDataset extends JPanel {
                                 default:
                                     jtaDisplay.setText(jtaDisplay.getText() + "\n\"" + input + "\" is not recognized as a valid input.");
                                     jtaDisplay.setText(jtaDisplay.getText() + "\nMake your selection from the choices below:"
-                                            + "\n1. Show all adults (MAY TAKE A LONG TIME!)"
+                                            + "\n1. Show all adults"
                                             + "\n2. Sort by Gender"
                                             + "\n3. Sort by Country"
                                             + "\n4. Sort by Race"
@@ -720,7 +715,7 @@ public class CensusDataset extends JPanel {
                             }
                         }
                         jtaDisplay.setText(jtaDisplay.getText() + "\nMake your selection from the choices below:"
-                                + "\n1. Show all adults (MAY TAKE A LONG TIME!)"
+                                + "\n1. Show all adults"
                                 + "\n2. Sort by Gender"
                                 + "\n3. Sort by Country"
                                 + "\n4. Sort by Race"
@@ -745,7 +740,7 @@ public class CensusDataset extends JPanel {
                             }
                         }
                         jtaDisplay.setText(jtaDisplay.getText() + "\nMake your selection from the choices below:"
-                                + "\n1. Show all adults (MAY TAKE A LONG TIME!)"
+                                + "\n1. Show all adults"
                                 + "\n2. Sort by Gender"
                                 + "\n3. Sort by Country"
                                 + "\n4. Sort by Race"
